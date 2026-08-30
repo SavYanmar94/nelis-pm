@@ -1,0 +1,36 @@
+// ============================================================
+// FILE (NUOVO): lib/constants/quotes.ts
+// ============================================================
+
+export const MOTIVATIONAL_QUOTES = [
+  "Un cantiere ben pianificato è già a metà dell'opera.",
+  "La qualità non è mai un caso; è sempre il risultato di uno sforzo intelligente.",
+  "Ogni grande edificio inizia con una singola pietra posata con cura.",
+  "Il tempo speso a pianificare è tempo risparmiato nell'esecuzione.",
+  "I dettagli non sono dettagli. Fanno il progetto.",
+  "La disciplina è il ponte tra gli obiettivi e i risultati.",
+  "Un buon Project Manager non aspetta i problemi: li anticipa.",
+  "Le fondamenta solide sopportano le tempeste più forti.",
+  "Chi costruisce con pazienza, costruisce per durare.",
+  "La comunicazione chiara previene il 90% dei problemi di cantiere.",
+  "Ogni ritardo affrontato oggi è un ritardo evitato domani.",
+  "Il successo di un cantiere si misura nei dettagli che nessuno vede.",
+  "Organizzazione oggi, tranquillità domani.",
+  "Un problema individuato in tempo è un problema già risolto a metà.",
+  "La squadra che comunica bene, costruisce meglio.",
+  "Precisione, pazienza, perseveranza: le tre P del buon cantiere.",
+  "Non esistono scorciatoie per un lavoro fatto bene.",
+  "Un cronoprogramma rispettato è una promessa mantenuta.",
+  "Il miglior momento per controllare un cantiere è sempre adesso.",
+  "Le grandi opere nascono da piccole verifiche quotidiane.",
+  "La leadership in cantiere si dimostra nei momenti difficili.",
+  "Ogni check-in mattutino è un passo verso il successo del progetto.",
+  "Pianifica con la testa, costruisci con il cuore.",
+  "La fiducia del cliente si costruisce un giorno alla volta.",
+  "Un cantiere sicuro è un cantiere efficiente.",
+  "Chi controlla i dettagli, controlla i risultati.",
+  "Il vero progresso si misura in ciò che è stato completato, non in ciò che è iniziato.",
+  "La costanza batte il talento quando il talento non è costante.",
+  "Un buon piano oggi vale più di un piano perfetto domani.",
+  "Ogni cantiere racconta la storia di chi lo ha guidato con cura.",
+] as const;
