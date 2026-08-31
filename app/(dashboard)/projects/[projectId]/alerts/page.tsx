@@ -1,6 +1,6 @@
 // ============================================================
 // FILE (RISCRITTO): app/(dashboard)/projects/[projectId]/alerts/page.tsx
-// + pulsante "Elimina Cantiere" sotto "Genera Verbale"
+// + pulsante "Modifica Dati Cantiere"
 // ============================================================
 
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getProjectWithTasks, getProjectAlerts } from "@/lib/queries/gantt";
 import { VerbaleDialog } from "@/components/verbale/verbale-dialog";
+import { EditProjectDialog } from "@/components/project/edit-project-dialog";
 import { ProjectTabs } from "@/components/project/project-tabs";
 import { MorningDigestWidget } from "@/components/dashboard/morning-digest";
 import { DeleteProjectButton } from "@/components/dashboard/delete-project-button";
@@ -43,7 +44,10 @@ export default async function ProjectAlertsPage({
           {project.client && <p className="text-muted-foreground">{project.client}</p>}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <VerbaleDialog projectId={project.id} />
+          <div className="flex items-center gap-2">
+            <EditProjectDialog project={project} />
+            <VerbaleDialog projectId={project.id} />
+          </div>
           <DeleteProjectButton projectId={project.id} projectName={project.name} variant="full" />
         </div>
       </header>

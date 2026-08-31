@@ -1,6 +1,6 @@
 // ============================================================
 // FILE (RISCRITTO): components/wizard/project-wizard.tsx
-// + accetta e propaga rolePresets
+// Aggiunti i nuovi campi allo stato iniziale del form
 // ============================================================
 
 "use client";
@@ -41,6 +41,9 @@ export function ProjectWizard({ companyId, templates, existingStakeholders, role
     location: "",
     start_date: "",
     end_date: "",
+    partita_iva: "",
+    codice_fiscale: "",
+    codice_ateco: "",
   });
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
   const [wbsGroups, setWbsGroups] = useState<WbsMacroGroup[]>([]);

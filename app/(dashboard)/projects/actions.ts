@@ -31,6 +31,9 @@ export async function createProject(
       template_used: payload.templateId,
       created_by: user.id,
       status: "active",
+      partita_iva: payload.basicInfo.partita_iva || null,
+      codice_fiscale: payload.basicInfo.codice_fiscale || null,
+      codice_ateco: payload.basicInfo.codice_ateco || null,
     })
     .select()
     .single();
@@ -173,6 +176,33 @@ export async function deleteProject(projectId: string) {
 export async function updateProjectInfo(projectId: string, name: string, client: string | null) {
   const supabase = await createClient();
   const { error } = await supabase.from("projects").update({ name, client }).eq("id", projectId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard");
+  revalidatePath(`/projects/${projectId}/alerts`);
+  revalidatePath(`/projects/${projectId}/gantt`);
+  revalidatePath(`/projects/${projectId}/tasks`);
+}
+
+/*
+Poi aggiungi questa nuova funzione in fondo al file
+(distinta da updateProjectInfo, che resta invariata e continua
+a gestire la rinomina rapida dalla dashboard):
+*/
+
+export interface UpdateProjectDetailsInput {
+  name: string;
+  client: string | null;
+  location: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  partita_iva: string | null;
+  codice_fiscale: string | null;
+  codice_ateco: string | null;
+}
+
+export async function updateProjectDetails(projectId: string, data: UpdateProjectDetailsInput) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("projects").update(data).eq("id", projectId);
   if (error) throw new Error(error.message);
   revalidatePath("/dashboard");
   revalidatePath(`/projects/${projectId}/alerts`);

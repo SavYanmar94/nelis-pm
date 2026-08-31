@@ -88,6 +88,9 @@ export interface Database {
           created_by: string | null;
           created_at: string;
           updated_at: string;
+          partita_iva: string | null;
+          codice_fiscale: string | null;
+          codice_ateco: string | null;
         };
         Insert: {
           id?: string;
@@ -102,6 +105,9 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
+          partita_iva?: string | null;
+          codice_fiscale?: string | null;
+          codice_ateco?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["projects"]["Insert"]>;
       };
@@ -313,7 +319,11 @@ export interface WizardStep1Input {
   location: string;
   start_date: string;
   end_date: string;
+  partita_iva: string;
+  codice_fiscale: string;
+  codice_ateco: string;
 }
+
 
 /** Input del form Step 4 del wizard (Stakeholders) */
 export interface WizardStakeholderInput {
