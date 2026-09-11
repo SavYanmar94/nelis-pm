@@ -1,13 +1,15 @@
 // ============================================================
 // FILE (RISCRITTO): components/gantt/gantt-chart.tsx
-// Pallino di stato accanto al micro-task (per riga) e alla Fase
-// (sostituisce la bandierina), stato "In ritardo" propagato alla barra
+// Bar fix + switch interattivi + pulsante note per riga
 // ============================================================
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Lock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { toggleTaskField } from "@/app/(dashboard)/projects/[projectId]/tasks/actions";
+import { TaskNotesDialog } from "@/components/tasks/task-notes-dialog";
 import {
   buildDayRange,
   groupByMonth,
@@ -26,7 +28,7 @@ import type { Project, TaskWithStakeholder } from "@/lib/types";
 
 const COL_WIDTH = 32;
 const LABEL_WIDTH = 300;
-const ROW_HEIGHT = 64;
+const ROW_HEIGHT = 84;
 const BAR_HEIGHT = 24;
 
 export function GanttChart({ project, tasks }: { project: Project; tasks: TaskWithStakeholder[] }) {
@@ -39,7 +41,7 @@ export function GanttChart({ project, tasks }: { project: Project; tasks: TaskWi
   if (days.length === 0) {
     return (
       <div className="border rounded-xl p-12 text-center text-muted-foreground bg-white">
-        Nessuna data pianificata. Aggiungi date di inizio/fine ai task per visualizzare il Gantt.
+        Nessuna data pianificata. Aggiungi una data stimata di completamento ai task per visualizzare il Gantt.
       </div>
     );
   }
@@ -201,15 +203,44 @@ function GanttTaskRow({
   rangeStart: Date;
   todayLeft: number | null;
 }) {
-  const status = computeTaskStatus(task);
+  const [isScheduled, setIsScheduled] = useState(task.is_scheduled);
+  const [isCompleted, setIsCompleted] = useState(task.is_completed);
+  const [, startTransition] = useTransition();
+
+  const status = computeTaskStatus({
+    is_scheduled: isScheduled,
+    is_completed: isCompleted,
+    planned_end: task.planned_end,
+  });
   const style = STATUS_STYLES[status];
   const bar = computeBarStyle(task, rangeStart, COL_WIDTH);
   const timelineWidth = days.length * COL_WIDTH;
 
+  function handleScheduledChange(value: boolean) {
+    setIsScheduled(value);
+    if (!value) setIsCompleted(false);
+
+    startTransition(async () => {
+      try {
+        await toggleTaskField(task.id, "is_scheduled", value);
+        if (!value) await toggleTaskField(task.id, "is_completed", false);
+      } catch {
+        setIsScheduled(task.is_scheduled);
+      }
+    });
+  }
+
+  function handleCompletedChange(value: boolean) {
+    setIsCompleted(value);
+    startTransition(() => {
+      toggleTaskField(task.id, "is_completed", value).catch(() => setIsCompleted(task.is_completed));
+    });
+  }
+
   return (
     <div className="flex border-b border-slate-100 hover:bg-slate-50/60 group">
       <div
-        className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 shrink-0 px-3 py-2 border-r border-slate-200"
+        className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 shrink-0 px-3 py-2 border-r border-slate-200 flex flex-col justify-center gap-1"
         style={{ width: LABEL_WIDTH }}
       >
         <div className="flex items-center gap-2">
@@ -221,6 +252,26 @@ function GanttTaskRow({
         <p className="text-xs text-slate-500 truncate pl-4">
           {task.stakeholder?.name ?? task.department ?? "—"}
         </p>
+        <div className="flex items-center gap-3 pl-4">
+          <label className="flex items-center gap-1.5 text-[10px] text-slate-500 cursor-pointer">
+            <Switch checked={isScheduled} onCheckedChange={handleScheduledChange} className="scale-75 origin-left" />
+            Sched.
+          </label>
+          <label className="flex items-center gap-1.5 text-[10px] text-slate-500 cursor-pointer">
+            <Switch
+              checked={isCompleted}
+              onCheckedChange={handleCompletedChange}
+              disabled={!isScheduled}
+              className="scale-75 origin-left"
+            />
+            Compl.
+          </label>
+          <TaskNotesDialog
+            taskId={task.id}
+            taskLabel={`${task.micro_task} — ${task.stakeholder?.name ?? task.department ?? ""}`}
+            initialNotes={task.notes}
+          />
+        </div>
       </div>
 
       <div className="relative" style={{ width: timelineWidth, height: ROW_HEIGHT }}>
@@ -248,3 +299,4 @@ function GanttTaskRow({
     </div>
   );
 }
+

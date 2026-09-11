@@ -295,3 +295,26 @@ async function getNextSortOrder(
 
   return (maxRow?.sort_order ?? 0) + 1;
 }
+
+// ============================================================
+// FILE (AGGIORNATO): app/(dashboard)/projects/[projectId]/tasks/actions.ts
+// + updateTaskNotes (aggiungi in fondo al file esistente)
+// ============================================================
+
+/*
+Aggiungi questa funzione in fondo al file esistente:
+*/
+
+export async function updateTaskNotes(taskId: string, notes: string | null) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ notes })
+    .eq("id", taskId)
+    .select("project_id")
+    .single();
+
+  if (error) throw new Error(error.message);
+  if (data) revalidateProject(data.project_id);
+}

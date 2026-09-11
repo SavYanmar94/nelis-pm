@@ -1,5 +1,6 @@
 // ============================================================
-// FILE: app/api/projects/[projectId]/verbale/route.tsx
+// FILE (RISCRITTO): app/api/projects/[projectId]/verbale/route.tsx
+// Query estesa con stato/date
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -7,7 +8,6 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { VerbaleDocument } from "@/lib/pdf/verbale-document";
 
-// Necessario: @react-pdf/renderer richiede il runtime Node.js (non Edge)
 export const runtime = "nodejs";
 
 export async function POST(
@@ -43,13 +43,20 @@ export async function POST(
     macro_task: string;
     micro_task: string;
     department: string | null;
+    is_scheduled: boolean;
+    is_completed: boolean;
+    actual_start: string | null;
+    actual_end: string | null;
+    planned_end: string | null;
     stakeholder: { name: string } | null;
   }[] = [];
 
   if (mode === "completa") {
     const { data, error } = await supabase
       .from("tasks")
-      .select("macro_task, micro_task, department, stakeholder:stakeholders(name)")
+      .select(
+        "macro_task, micro_task, department, is_scheduled, is_completed, actual_start, actual_end, planned_end, stakeholder:stakeholders(name)"
+      )
       .eq("project_id", projectId)
       .order("fase_macro", { ascending: true })
       .order("fase_micro", { ascending: true })

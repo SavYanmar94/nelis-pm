@@ -11,7 +11,6 @@ const MONTH_NAMES = [
   "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre",
 ];
 
-/** Un task è "in ritardo" se ha una data stimata superata e non è ancora completato */
 export function isOverdue(plannedEnd: string | null | undefined): boolean {
   if (!plannedEnd) return false;
   const end = new Date(plannedEnd);
@@ -30,7 +29,6 @@ export function computeTaskStatus(
   return "not_scheduled";
 }
 
-/** Stato di gruppo (Micro-Fase): rosso se almeno un task è in ritardo */
 export function computeGroupStatus(
   tasks: Pick<Task, "is_scheduled" | "is_completed" | "planned_end">[]
 ): TaskStatus {
@@ -41,7 +39,6 @@ export function computeGroupStatus(
   return "not_scheduled";
 }
 
-/** Stato di Fase, aggregando gli stati delle sue Micro-Fasi */
 export function computeMacroStatus(microStatuses: TaskStatus[]): TaskStatus {
   if (microStatuses.length === 0) return "not_scheduled";
   if (microStatuses.some((s) => s === "overdue")) return "overdue";
@@ -52,7 +49,7 @@ export function computeMacroStatus(microStatuses: TaskStatus[]): TaskStatus {
 
 export function buildDayRange(
   project: Pick<Project, "start_date" | "end_date">,
-  tasks: Pick<Task, "planned_start" | "planned_end">[]
+  tasks: Pick<Task, "planned_start" | "planned_end" | "actual_start" | "actual_end">[]
 ): { days: Date[]; rangeStart: Date } {
   const dates: Date[] = [];
   if (project.start_date) dates.push(new Date(project.start_date));
@@ -60,6 +57,8 @@ export function buildDayRange(
   tasks.forEach((t) => {
     if (t.planned_start) dates.push(new Date(t.planned_start));
     if (t.planned_end) dates.push(new Date(t.planned_end));
+    if (t.actual_start) dates.push(new Date(t.actual_start));
+    if (t.actual_end) dates.push(new Date(t.actual_end));
   });
 
   if (dates.length === 0) return { days: [], rangeStart: new Date() };
@@ -114,15 +113,21 @@ function diffDays(from: Date, to: Date): number {
 }
 
 export function computeBarStyle(
-  task: Pick<Task, "planned_start" | "planned_end">,
+  task: Pick<Task, "planned_start" | "planned_end" | "actual_start" | "actual_end">,
   rangeStart: Date,
   colWidth: number
 ): { left: number; width: number } | null {
-  if (!task.planned_start || !task.planned_end) return null;
-  const start = new Date(task.planned_start);
-  const end = new Date(task.planned_end);
-  const startOffset = diffDays(rangeStart, start);
-  const duration = Math.max(1, diffDays(start, end) + 1);
+  const startSource = task.actual_start ?? task.planned_start;
+  const endSource = task.actual_end ?? task.planned_end ?? task.actual_start ?? task.planned_start;
+
+  if (!startSource || !endSource) return null;
+
+  const start = new Date(startSource);
+  const end = new Date(endSource);
+  const [realStart, realEnd] = start <= end ? [start, end] : [end, start];
+
+  const startOffset = diffDays(rangeStart, realStart);
+  const duration = Math.max(1, diffDays(realStart, realEnd) + 1);
   return { left: startOffset * colWidth + 2, width: duration * colWidth - 4 };
 }
 
@@ -146,7 +151,6 @@ export function groupTasksByMacro<T extends Pick<Task, "macro_task" | "fase_macr
   return Array.from(map.values());
 }
 
-/** Raggruppa i task di UNA fase per Micro-Task, usato per calcolare gli stati aggregati nel Gantt */
 export function groupTasksByMicroWithin<T extends Pick<Task, "micro_task" | "fase_micro">>(
   tasks: T[]
 ): { fase_micro: number; micro_task: string; tasks: T[] }[] {

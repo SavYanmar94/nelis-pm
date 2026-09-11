@@ -1,5 +1,7 @@
 // ============================================================
-// FILE: lib/pdf/verbale-document.tsx
+// FILE (RISCRITTO): lib/pdf/verbale-document.tsx
+// + colore stato (pallino+etichetta), date Schedulato/Completato,
+// checkbox pre-spuntato se completato
 // ============================================================
 
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
@@ -12,34 +14,26 @@ const COLORS = {
   bgSoft: "#f5f6f8",
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  not_scheduled: "#e2445c",
+  in_progress: "#fdab3d",
+  completed: "#00c875",
+  overdue: "#e2445c",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  not_scheduled: "Da avviare",
+  in_progress: "In corso",
+  completed: "Completato",
+  overdue: "In ritardo",
+};
+
 const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    fontSize: 10,
-    fontFamily: "Helvetica",
-    color: COLORS.dark,
-  },
-  headerBar: {
-    height: 6,
-    backgroundColor: COLORS.primary,
-    borderRadius: 3,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: "Helvetica-Bold",
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: 11,
-    color: COLORS.muted,
-    marginBottom: 16,
-  },
-  infoGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 20,
-  },
+  page: { padding: 40, fontSize: 9, fontFamily: "Helvetica", color: COLORS.dark },
+  headerBar: { height: 6, backgroundColor: COLORS.primary, borderRadius: 3, marginBottom: 16 },
+  title: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 2 },
+  subtitle: { fontSize: 11, color: COLORS.muted, marginBottom: 16 },
+  infoGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 20 },
   infoBox: {
     width: "48%",
     borderWidth: 1,
@@ -49,89 +43,53 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginRight: "2%",
   },
-  infoLabel: {
-    fontSize: 8,
-    color: COLORS.muted,
-    textTransform: "uppercase",
-    marginBottom: 3,
-  },
-  infoValue: {
-    fontSize: 11,
-    fontFamily: "Helvetica-Bold",
-  },
-  infoValueEmpty: {
-    fontSize: 11,
-    color: COLORS.muted,
-  },
+  infoLabel: { fontSize: 8, color: COLORS.muted, textTransform: "uppercase", marginBottom: 3 },
+  infoValue: { fontSize: 11, fontFamily: "Helvetica-Bold" },
+  infoValueEmpty: { fontSize: 11, color: COLORS.muted },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: COLORS.bgSoft,
     borderRadius: 4,
     paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     marginBottom: 4,
   },
-  tableHeaderCell: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: COLORS.muted,
-    textTransform: "uppercase",
-  },
+  tableHeaderCell: { fontSize: 7, fontFamily: "Helvetica-Bold", color: COLORS.muted, textTransform: "uppercase" },
   row: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  checkboxCol: { width: 24 },
+  checkboxCol: { width: 20 },
   checkbox: {
-    width: 12,
-    height: 12,
+    width: 11,
+    height: 11,
     borderWidth: 1.2,
     borderColor: COLORS.muted,
     borderRadius: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  macroCol: { width: "22%", fontSize: 9 },
-  microCol: { width: "42%", fontSize: 9 },
-  deptCol: { width: "26%", fontSize: 9, color: COLORS.muted },
-  emptyLine: {
-    flex: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    height: 14,
-  },
-  sectionTitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  observationsBox: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 4,
-    height: 90,
-  },
-  signatureRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 32,
-  },
-  signatureBlock: {
-    width: "45%",
-  },
-  signatureLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.dark,
-    height: 32,
-    marginBottom: 4,
-  },
-  signatureLabel: {
-    fontSize: 9,
-    color: COLORS.muted,
-  },
+  checkboxChecked: { backgroundColor: "#00c875", borderColor: "#00c875" },
+  checkmark: { fontSize: 8, color: "#ffffff", fontFamily: "Helvetica-Bold" },
+  macroCol: { width: "16%", fontSize: 8 },
+  microCol: { width: "25%", fontSize: 8 },
+  deptCol: { width: "15%", fontSize: 8, color: COLORS.muted },
+  statusCol: { width: "13%" },
+  statusRow: { flexDirection: "row", alignItems: "center" },
+  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 3 },
+  statusText: { fontSize: 7 },
+  dateCol: { width: "11%", fontSize: 7.5, color: COLORS.muted },
+  emptyLine: { flex: 1, borderBottomWidth: 1, borderBottomColor: COLORS.border, height: 14 },
+  sectionTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", marginTop: 20, marginBottom: 8 },
+  observationsBox: { borderWidth: 1, borderColor: COLORS.border, borderRadius: 4, height: 90 },
+  signatureRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 32 },
+  signatureBlock: { width: "45%" },
+  signatureLine: { borderBottomWidth: 1, borderBottomColor: COLORS.dark, height: 32, marginBottom: 4 },
+  signatureLabel: { fontSize: 9, color: COLORS.muted },
   footer: {
     position: "absolute",
     bottom: 20,
@@ -151,7 +109,30 @@ interface VerbaleTaskRow {
   macro_task: string;
   micro_task: string;
   department: string | null;
+  is_scheduled: boolean;
+  is_completed: boolean;
+  actual_start: string | null;
+  actual_end: string | null;
+  planned_end: string | null;
   stakeholder: { name: string } | null;
+}
+
+function computeStatus(t: Pick<VerbaleTaskRow, "is_scheduled" | "is_completed" | "planned_end">): string {
+  if (t.is_completed) return "completed";
+  if (t.planned_end) {
+    const end = new Date(t.planned_end);
+    end.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (end < today) return "overdue";
+  }
+  if (t.is_scheduled) return "in_progress";
+  return "not_scheduled";
+}
+
+function formatDatePdf(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
 interface VerbaleDocumentProps {
@@ -204,19 +185,35 @@ export function VerbaleDocument({
           <Text style={[styles.tableHeaderCell, styles.macroCol]}>Macro-Task</Text>
           <Text style={[styles.tableHeaderCell, styles.microCol]}>Micro-Task</Text>
           <Text style={[styles.tableHeaderCell, styles.deptCol]}>Responsabile</Text>
+          <Text style={[styles.tableHeaderCell, styles.statusCol]}>Stato</Text>
+          <Text style={[styles.tableHeaderCell, styles.dateCol]}>Sched.</Text>
+          <Text style={[styles.tableHeaderCell, styles.dateCol]}>Compl.</Text>
         </View>
 
         {mode === "completa"
-          ? tasks.map((t, i) => (
-              <View key={i} style={styles.row} wrap={false}>
-                <View style={styles.checkboxCol}>
-                  <View style={styles.checkbox} />
+          ? tasks.map((t, i) => {
+              const status = computeStatus(t);
+              return (
+                <View key={i} style={styles.row} wrap={false}>
+                  <View style={styles.checkboxCol}>
+                    <View style={t.is_completed ? [styles.checkbox, styles.checkboxChecked] : styles.checkbox}>
+                      {t.is_completed && <Text style={styles.checkmark}>✓</Text>}
+                    </View>
+                  </View>
+                  <Text style={styles.macroCol}>{t.macro_task}</Text>
+                  <Text style={styles.microCol}>{t.micro_task}</Text>
+                  <Text style={styles.deptCol}>{t.stakeholder?.name ?? t.department ?? "—"}</Text>
+                  <View style={styles.statusCol}>
+                    <View style={styles.statusRow}>
+                      <View style={[styles.statusDot, { backgroundColor: STATUS_COLORS[status] }]} />
+                      <Text style={styles.statusText}>{STATUS_LABELS[status]}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.dateCol}>{formatDatePdf(t.actual_start)}</Text>
+                  <Text style={styles.dateCol}>{formatDatePdf(t.actual_end)}</Text>
                 </View>
-                <Text style={styles.macroCol}>{t.macro_task}</Text>
-                <Text style={styles.microCol}>{t.micro_task}</Text>
-                <Text style={styles.deptCol}>{t.stakeholder?.name ?? t.department ?? "—"}</Text>
-              </View>
-            ))
+              );
+            })
           : Array.from({ length: emptyRowsCount }).map((_, i) => (
               <View key={i} style={styles.row} wrap={false}>
                 <View style={styles.checkboxCol}>

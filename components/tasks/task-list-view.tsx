@@ -1,8 +1,6 @@
 // ============================================================
 // FILE (RISCRITTO): components/tasks/task-list-view.tsx
-// TaskListRow: "Pianificato + Blocco" → singola "Data stimata completamento"
-// (MacroGroupEditor/MicroGroupEditor/TaskListView invariati rispetto
-// alla versione precedente, riportati per completezza)
+// + campo Note sotto Data stimata completamento / Task correlato
 // ============================================================
 
 "use client";
@@ -15,6 +13,7 @@ import {
   toggleTaskField,
   updateTaskDate,
   updateTaskPredecessor,
+  updateTaskNotes,
   deleteTask,
   renameMacroTask,
   renameMicroTask,
@@ -397,6 +396,7 @@ function TaskListRow({
     task.planned_end ? task.planned_end.slice(0, 10) : ""
   );
   const [predecessorId, setPredecessorId] = useState(task.predecessor_task_id ?? "");
+  const [notes, setNotes] = useState(task.notes ?? "");
   const [isDeleting, setIsDeleting] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -470,6 +470,14 @@ function TaskListRow({
     startTransition(() => {
       updateTaskPredecessor(task.id, value || null).catch(() => {
         setPredecessorId(task.predecessor_task_id ?? "");
+      });
+    });
+  }
+
+  function handleNotesBlur() {
+    startTransition(() => {
+      updateTaskNotes(task.id, notes.trim() || null).catch(() => {
+        setNotes(task.notes ?? "");
       });
     });
   }
@@ -579,6 +587,20 @@ function TaskListRow({
             <X className="h-4 w-4" />
           </button>
         </div>
+      </div>
+
+      <div className="pl-6">
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">
+          Note
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={handleNotesBlur}
+          rows={2}
+          placeholder="Annotazioni su questa attività..."
+          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 resize-none"
+        />
       </div>
     </div>
   );
