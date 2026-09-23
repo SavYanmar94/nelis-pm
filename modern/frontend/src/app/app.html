@@ -1,0 +1,75 @@
+<header class="topbar"><div class="brand"><span class="logo">N</span><div><strong>Nelis PM</strong><small>Gestione cantieri · Spring + Angular</small></div></div><span class="tag">Laboratorio Full Stack</span></header>
+<main>
+  <section class="intro"><div><p class="eyebrow">CRONOPROGRAMMA CANTIERI</p><h1>I lavori, sotto controllo.</h1><p>Crea un cantiere, pianifica fasi e microfasi e assegna una risorsa alle attività.</p></div><div class="stats"><strong>{{ projects().length }}</strong><span>cantieri</span><strong>{{ resources().length }}</strong><span>risorse</span></div></section>
+  @if (error()) { <div class="notice bad" role="alert">{{ error() }}</div> }
+  @if (info()) { <div class="notice good" role="status">{{ info() }}</div> }
+  <div class="layout">
+    <aside>
+      <section class="panel"><h2>Cantieri</h2>
+        @for (project of projects(); track project.id) {
+          <div class="project-row" [class.selected]="selected()?.id === project.id">
+            <button type="button" class="project-select" (click)="select(project)"><b>{{ project.name }}</b><span>{{ project.client || project.location || 'Nuovo cantiere' }}</span></button>
+            <button type="button" class="icon danger" aria-label="Elimina cantiere" (click)="deleteProject(project)">×</button>
+          </div>
+        } @empty { <p class="muted">Ancora nessun cantiere.</p> }
+      </section>
+      <section class="panel"><h2>Nuovo cantiere</h2>
+        <form (ngSubmit)="createProject()">
+          <label>Nome <input name="projectName" [(ngModel)]="projectName" required maxlength="200" placeholder="Es. Ristrutturazione Via Roma"></label>
+          <label>Committente <input name="projectClient" [(ngModel)]="projectClient" placeholder="Cliente"></label>
+          <label>Luogo <input name="projectLocation" [(ngModel)]="projectLocation" placeholder="Città / indirizzo"></label>
+          <label>Inizio cantiere <input type="date" name="projectStartDate" [(ngModel)]="projectStartDate"></label>
+          <label>Fine cantiere <input type="date" name="projectEndDate" [(ngModel)]="projectEndDate"></label>
+          <button class="primary" type="submit">Crea cantiere</button>
+        </form>
+      </section>
+      <section class="panel"><h2>Risorse</h2><p class="muted">Persone, squadre o mezzi da prenotare.</p>
+        <form (ngSubmit)="createResource()"><label>Nuova risorsa <input name="resourceName" [(ngModel)]="resourceName" required maxlength="200" placeholder="Es. Squadra elettricisti"></label>
+          <button class="secondary" type="submit">Aggiungi risorsa</button></form>
+        @for (r of resources(); track r.id) { <p class="resource">● {{ r.name }}</p> }
+      </section>
+    </aside>
+    <div class="content">
+      @if (selected(); as project) {
+        <div class="section-head"><div><p class="eyebrow">CANTIERE ATTIVO</p><h2>{{ project.name }}</h2><p>{{ project.client || 'Committente non specificato' }} · {{ project.location || 'Sede non specificata' }}</p></div><span class="count">{{ tasks().length }} attività</span></div>
+        @if (overdue().length) { <div class="notice bad" role="status">{{ overdue().length }} attività oltre la data prevista: @for (t of overdue(); track t.id) { <span>{{ t.microTask }}{{ $last ? '' : ', ' }}</span> }</div> }
+        <section class="panel"><h3>{{ editingTaskId ? 'Modifica attività' : 'Nuova attività' }}</h3>
+          <form class="task-form" (ngSubmit)="saveTask()">
+            <label>Fase n. <input type="number" min="0" name="faseMacro" [(ngModel)]="task.faseMacro" required></label>
+            <label>Fase <input name="macroTask" [(ngModel)]="task.macroTask" required maxlength="200" placeholder="Es. Impianti"></label>
+            <label>Microfase n. <input type="number" min="0" name="faseMicro" [(ngModel)]="task.faseMicro" required></label>
+            <label>Microfase <input name="microTask" [(ngModel)]="task.microTask" required maxlength="200" placeholder="Es. Cablaggio"></label>
+            <label>Reparto <input name="department" [(ngModel)]="task.department" placeholder="Es. Elettrico"></label>
+            <label>Inizio previsto <input type="date" name="plannedStart" [(ngModel)]="task.plannedStart"></label>
+            <label>Fine prevista <input type="date" name="plannedEnd" [(ngModel)]="task.plannedEnd"></label>
+            <label>Risorsa <select name="resourceId" [(ngModel)]="task.resourceId"><option [ngValue]="null">Seleziona</option>@for (r of resources(); track r.id) { <option [value]="r.id">{{ r.name }}</option> }</select></label>
+            <label>Predecessore <select name="predecessorId" [(ngModel)]="task.predecessorId"><option [ngValue]="null">Nessuno</option>@for (t of tasks(); track t.id) { @if (t.id !== editingTaskId) { <option [value]="t.id">{{ t.microTask }}</option> } }</select></label>
+            <label class="wide">Note <input name="notes" [(ngModel)]="task.notes" maxlength="1000" placeholder="Informazioni operative"></label>
+            <div class="form-actions"><button class="primary" type="submit">{{ editingTaskId ? 'Salva modifiche' : 'Aggiungi attività' }}</button>@if (editingTaskId) { <button class="secondary" type="button" (click)="resetTask()">Annulla</button> }</div>
+          </form>
+        </section>
+        <section class="panel"><div class="section-head small"><h3>Attività e precedenze</h3><span class="muted">Ordinate per fase</span></div>
+          <div class="task-list">
+            @for (t of tasks(); track t.id) {
+              <article class="task-row"><div><span class="phase">FASE {{ t.faseMacro }} · {{ t.macroTask }} / {{ t.faseMicro }}</span><h4>{{ t.microTask }}</h4>
+                <p>{{ t.department || 'Nessun reparto' }} · {{ t.plannedStart || '—' }} → {{ t.plannedEnd || '—' }} · {{ resourceLabel(t.resourceId) }}</p>
+                @if (t.predecessorId) { <small>↳ Dopo: {{ predecessorLabel(t.predecessorId) }}</small> }
+              </div><div class="task-actions"><span class="status" [class.done]="t.status === 'COMPLETED'" [class.alert]="t.status === 'FAILED'">{{ statusLabel(t.status) }}</span>
+                @if (t.status === 'UNSCHEDULED' || t.status === 'FAILED' || t.status === 'PENDING') { <button class="secondary" type="button" (click)="action(t, 'schedule')">Schedula</button> }
+                @if (t.status === 'SCHEDULED') { <button class="secondary" type="button" (click)="action(t, 'complete')">Completa</button> }
+                @if (t.status === 'UNSCHEDULED' || t.status === 'FAILED') { <button class="link" type="button" (click)="editTask(t)">Modifica</button><button class="link danger" type="button" (click)="deleteTask(t)">Elimina</button> }
+              </div></article>
+            } @empty { <p class="muted">Aggiungi la prima attività per iniziare il cronoprogramma.</p> }
+          </div>
+        </section>
+        @if (days().length) {
+          <section class="panel"><div class="section-head small"><h3>Vista temporale</h3><span class="muted">Prime 31 giornate pianificate</span></div>
+            <div class="timeline"><table><thead><tr><th>Microfase</th>@for (day of days(); track day) { <th>{{ day.slice(8) }}</th> }</tr></thead>
+              <tbody>@for (t of tasks(); track t.id) { <tr><th>{{ t.microTask }}</th>@for (day of days(); track day) { <td [class.active]="active(t, day)" [class.finished]="active(t, day) && t.status === 'COMPLETED'"></td> }</tr> }</tbody></table>
+            </div>
+          </section>
+        }
+      } @else { <div class="empty"><div class="empty-icon">◫</div><h2>Seleziona un cantiere</h2><p>Scegli un progetto a sinistra o creane uno nuovo per iniziare.</p></div> }
+    </div>
+  </div>
+</main>

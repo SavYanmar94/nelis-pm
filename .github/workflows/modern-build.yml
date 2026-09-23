@@ -1,0 +1,41 @@
+name: Modern stack build
+on:
+  pull_request:
+    paths:
+      - 'modern/**'
+      - '.github/workflows/modern-build.yml'
+  push:
+    branches:
+      - feature/spring-angular-oracle
+    paths:
+      - 'modern/**'
+      - '.github/workflows/modern-build.yml'
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [project-service, resource-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: modern/${{ matrix.service }}/pom.xml
+      - run: mvn -B test
+        working-directory: modern/${{ matrix.service }}
+  angular:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: modern/frontend/package-lock.json
+      - run: npm ci
+        working-directory: modern/frontend
+      - run: npm run build
+        working-directory: modern/frontend

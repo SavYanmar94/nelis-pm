@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { resend } from "@/lib/email/resend";
+import { getResend } from "@/lib/email/resend";
 import { buildDeadlineReminderEmail } from "@/lib/email/deadline-reminder-template";
 
 export const runtime = "nodejs";
@@ -13,9 +13,14 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   // Protegge l'endpoint: solo Vercel Cron (che invia questo header) può eseguirlo
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  if (!process.env.RESEND_API_KEY) {
+    return NextResponse.json({ error: "Email service not configured" }, { status: 503 });
+  }
+  const resend = getResend();
 
   const supabase = createServiceRoleClient();
 
@@ -76,8 +81,6 @@ export async function GET(request: NextRequest) {
     totalFound: tasks?.length ?? 0,
   });
 }
-
-
 
 
 
