@@ -2,7 +2,7 @@ server:
   port: 8081
 spring:
   datasource:
-    url: ${DB_URL:jdbc:oracle:thin:@localhost:1521/FREEPDB1}
+    url: ${DB_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
     username: ${DB_USER:NELIS_RESOURCE}
     password: ${DB_PASSWORD:Resource123}
   jpa:

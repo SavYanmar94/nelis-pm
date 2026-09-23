@@ -19,7 +19,7 @@ services:
   resource-service:
     build: ./resource-service
     environment:
-      DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      DB_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
       DB_USER: NELIS_RESOURCE
       DB_PASSWORD: ${RESOURCE_DB_PASSWORD:?Set RESOURCE_DB_PASSWORD in .env}
     depends_on:
@@ -30,7 +30,7 @@ services:
   project-service:
     build: ./project-service
     environment:
-      DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      DB_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
       DB_USER: NELIS_PROJECT
       DB_PASSWORD: ${PROJECT_DB_PASSWORD:?Set PROJECT_DB_PASSWORD in .env}
       RESOURCE_URL: http://resource-service:8081

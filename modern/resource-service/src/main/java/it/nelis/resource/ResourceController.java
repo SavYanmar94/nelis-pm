@@ -37,7 +37,7 @@ public class ResourceController {
         var old = reservations.findById(taskId);
         if (old.isPresent()) {
             Reservation booking = old.get();
-            if (booking.resource.id.equals(resourceId) && booking.from.equals(from) && booking.to.equals(to)) return;
+            if (booking.resource.id.equals(resourceId) && booking.fromDay.equals(from) && booking.toDay.equals(to)) return;
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Il task ha già una diversa prenotazione");
         }
         if (reservations.countOverlapping(resourceId, from, to) > 0)

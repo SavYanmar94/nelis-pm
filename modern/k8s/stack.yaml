@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: nelis-config
 data:
-  DB_URL: jdbc:oracle:thin:@oracle.example.internal:1521/FREEPDB1
+  DB_URL: jdbc:oracle:thin:@//oracle.example.internal:1521/FREEPDB1
   RESOURCE_URL: http://resource-service:8081
 ---
 apiVersion: apps/v1
