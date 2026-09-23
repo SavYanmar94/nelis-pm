@@ -1,0 +1,52 @@
+services:
+  oracle:
+    image: container-registry.oracle.com/database/free:latest
+    environment:
+      ORACLE_PWD: ${ORACLE_PWD:?Set ORACLE_PWD in .env}
+      PROJECT_DB_PASSWORD: ${PROJECT_DB_PASSWORD:?Set PROJECT_DB_PASSWORD in .env}
+      RESOURCE_DB_PASSWORD: ${RESOURCE_DB_PASSWORD:?Set RESOURCE_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:1521:1521"
+    volumes:
+      - oradata:/opt/oracle/oradata
+      - ./oracle/01_users.sh:/opt/oracle/scripts/startup/01_users.sh:ro
+    healthcheck:
+      test: ["CMD", "/opt/oracle/checkDBStatus.sh"]
+      interval: 20s
+      timeout: 10s
+      retries: 40
+      start_period: 120s
+  resource-service:
+    build: ./resource-service
+    environment:
+      DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      DB_USER: NELIS_RESOURCE
+      DB_PASSWORD: ${RESOURCE_DB_PASSWORD:?Set RESOURCE_DB_PASSWORD in .env}
+    depends_on:
+      oracle:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:8081"
+  project-service:
+    build: ./project-service
+    environment:
+      DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      DB_USER: NELIS_PROJECT
+      DB_PASSWORD: ${PROJECT_DB_PASSWORD:?Set PROJECT_DB_PASSWORD in .env}
+      RESOURCE_URL: http://resource-service:8081
+    depends_on:
+      oracle:
+        condition: service_healthy
+      resource-service:
+        condition: service_started
+    ports:
+      - "127.0.0.1:8080:8080"
+  frontend:
+    build: ./frontend
+    depends_on:
+      - project-service
+      - resource-service
+    ports:
+      - "127.0.0.1:4200:8080"
+volumes:
+  oradata:

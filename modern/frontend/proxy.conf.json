@@ -1,0 +1,5 @@
+{
+  "/api/resources": { "target": "http://localhost:8081", "secure": false },
+  "/api/reservations": { "target": "http://localhost:8081", "secure": false },
+  "/api": { "target": "http://localhost:8080", "secure": false }
+}

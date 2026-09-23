@@ -1,3 +1,7 @@
+# Nelis PM
+
+La versione originale del gestionale cantieri è questa app Next.js/Supabase. Una ricostruzione progressiva per il colloquio Full Stack (Angular, Spring Boot, Oracle, Docker, microservizi/saga, Kubernetes/OpenShift) è nella cartella [modern](modern/README.md). I dati della versione originale non vengono modificati né migrati automaticamente.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
