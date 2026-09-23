@@ -7,12 +7,18 @@ Ricostruzione progressiva del cronoprogramma in `../` (Next.js/Supabase). Il cod
 Prerequisiti: Docker Compose, almeno 6 GB di RAM disponibili e accesso all'immagine Oracle Database Free dal [registry Oracle](https://container-registry.oracle.com/).
 
 ```bash
+git clone https://github.com/SavYanmar94/nelis-pm.git
+cd nelis-pm
+git switch feature/spring-angular-oracle
+cd modern
 cp .env.example .env
 # impostare password personali in .env
 docker compose up --build
 ```
 
 Aprire http://localhost:4200. L'avvio iniziale di Oracle può richiedere alcuni minuti. `project-service` espone http://localhost:8080; `resource-service` http://localhost:8081. Gli endpoint `/actuator/health/{liveness,readiness}` servono alle probe.
+
+Per sviluppare Angular senza ricostruire il container, eseguire `npm ci && npm start` dentro `modern/frontend`; il server di sviluppo inoltra le API ai due servizi Spring in esecuzione. Per esercitare la saga: creare una risorsa, due task con date sovrapposte e la stessa risorsa, poi schedulare il primo e il secondo. Il secondo produce un conflitto e mostra lo stato di prenotazione fallita.
 
 ## Funzioni implementate in questo laboratorio
 

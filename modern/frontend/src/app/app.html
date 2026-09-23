@@ -17,6 +17,9 @@
         <form (ngSubmit)="createProject()">
           <label>Nome <input name="projectName" [(ngModel)]="projectName" required maxlength="200" placeholder="Es. Ristrutturazione Via Roma"></label>
           <label>Committente <input name="projectClient" [(ngModel)]="projectClient" placeholder="Cliente"></label>
+          <label>Luogo <input name="projectLocation" [(ngModel)]="projectLocation" placeholder="Città / indirizzo"></label>
+          <label>Inizio cantiere <input type="date" name="projectStartDate" [(ngModel)]="projectStartDate"></label>
+          <label>Fine cantiere <input type="date" name="projectEndDate" [(ngModel)]="projectEndDate"></label>
           <button class="primary" type="submit">Crea cantiere</button>
         </form>
       </section>
@@ -29,6 +32,7 @@
     <div class="content">
       @if (selected(); as project) {
         <div class="section-head"><div><p class="eyebrow">CANTIERE ATTIVO</p><h2>{{ project.name }}</h2><p>{{ project.client || 'Committente non specificato' }} · {{ project.location || 'Sede non specificata' }}</p></div><span class="count">{{ tasks().length }} attività</span></div>
+        @if (overdue().length) { <div class="notice bad" role="status">{{ overdue().length }} attività oltre la data prevista: @for (t of overdue(); track t.id) { <span>{{ t.microTask }}{{ $last ? '' : ', ' }}</span> }</div> }
         <section class="panel"><h3>{{ editingTaskId ? 'Modifica attività' : 'Nuova attività' }}</h3>
           <form class="task-form" (ngSubmit)="saveTask()">
             <label>Fase n. <input type="number" min="0" name="faseMacro" [(ngModel)]="task.faseMacro" required></label>

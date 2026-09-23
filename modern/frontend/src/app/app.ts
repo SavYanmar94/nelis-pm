@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-interface Project { id: string; name: string; client: string | null; location: string | null }
+interface Project { id: string; name: string; client: string | null; location: string | null; startDate: string | null; endDate: string | null }
 interface Resource { id: string; name: string }
 interface Task { id: string; faseMacro: number; macroTask: string; faseMicro: number; microTask: string;
   department: string | null; plannedStart: string | null; plannedEnd: string | null;
@@ -20,6 +20,9 @@ export class App {
   info = signal('');
   projectName = '';
   projectClient = '';
+  projectLocation = '';
+  projectStartDate: string | null = null;
+  projectEndDate: string | null = null;
   resourceName = '';
   editingTaskId: string | null = null;
   task: TaskInput = this.emptyTask();
@@ -32,6 +35,11 @@ export class App {
     for (const date = new Date(start); date <= end && result.length < 31; date.setUTCDate(date.getUTCDate() + 1))
       result.push(date.toISOString().slice(0, 10));
     return result;
+  });
+  overdue = computed(() => {
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    return this.tasks().filter(t => !!t.plannedEnd && t.plannedEnd < today && t.status !== 'COMPLETED');
   });
   constructor() { this.loadProjects(); this.loadResources(); }
   emptyTask(): TaskInput {
@@ -58,8 +66,11 @@ export class App {
   createProject() {
     if (!this.projectName.trim()) return;
     this.clear();
-    this.http.post<Project>('/api/projects', { name: this.projectName, client: this.projectClient || null }).subscribe({
+    this.http.post<Project>('/api/projects', { name: this.projectName, client: this.projectClient || null,
+      location: this.projectLocation || null, startDate: this.projectStartDate || null,
+      endDate: this.projectEndDate || null }).subscribe({
       next: p => { this.projects.update(items => [...items, p]); this.projectName = ''; this.projectClient = '';
+        this.projectLocation = ''; this.projectStartDate = null; this.projectEndDate = null;
         this.select(p); this.info.set('Cantiere creato'); }, error: e => this.fail(e)
     });
   }
